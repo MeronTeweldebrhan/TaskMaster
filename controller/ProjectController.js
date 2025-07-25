@@ -26,7 +26,7 @@ const createProject = async (req, res) => {
 // Get projects for current user
 const getProjects = async (req, res) => {
   try {
-    const projects = await Project.find({ createdBy: req.user._id }).populate("tasks");
+    const projects = await Project.find({ createdBy: req.user._id }).populate("tasks","username");
     res.json(projects);
   } catch (err) {
     res.status(500).json({ message: err.message });

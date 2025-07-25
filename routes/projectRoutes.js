@@ -5,7 +5,7 @@ import { createProject,
   getProjectById,
   updateProject,
   deleteProject, } from '../controller/ProjectController.js'
-  import taskRoutes from './taskRoutes.js'
+ 
 
 const router =express.Router()
 
@@ -22,5 +22,5 @@ router.put('/:id',updateProject);
 //Delete project
 router.delete('/id',deleteProject)
 
-router.use('/:projectId/tasks', taskRoutes)
+
 export default router
