@@ -1,9 +1,12 @@
 import Project from "../models/Project.js";
 import Task from "../models/Task.js";
+import { verifyProjectOwnership } from '../utils/verifyOwnership.js'; 
+
 
 // Create project
 const createProject = async (req, res) => {
   try {
+
     const newProject = await Project.create({
       ...req.body,
       createdBy: req.user._id,
@@ -26,7 +29,8 @@ const createProject = async (req, res) => {
 // Get projects for current user
 const getProjects = async (req, res) => {
   try {
-    const projects = await Project.find({ createdBy: req.user._id }).populate("tasks","username");
+    const projects = await Project.find({ createdBy: req.user._id }).populate("createdBy", "username")
+      .populate("tasks");
     res.json(projects);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -36,36 +40,21 @@ const getProjects = async (req, res) => {
 // Get single project by ID
 const getProjectById = async (req, res) => {
   try {
-    const project = await Project.findById(req.params.id)
+    const project = await verifyProjectOwnership(req.user._id, req.params.id);
+
+    const populated = await Project.findById(project._id)
       .populate("createdBy", "username")
       .populate("tasks");
 
-    if (!project) {
-      return res.status(404).json({ message: "Project not found." });
-    }
-
-    if (project.createdBy._id.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: "Unauthorized to view this project." });
-    }
-
-    res.json(project);
+    res.json(populated);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(403).json({ message: err.message });
   }
 };
-
 // Update project
 const updateProject = async (req, res) => {
   try {
-    const existing = await Project.findById(req.params.id);
-
-    if (!existing) {
-      return res.status(404).json({ message: "Project not found." });
-    }
-
-    if (existing.createdBy.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: "Unauthorized." });
-    }
+     await verifyProjectOwnership(req.user._id, req.params.id);
 
     const updated = await Project.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
@@ -80,15 +69,7 @@ const updateProject = async (req, res) => {
 // Delete project
 const deleteProject = async (req, res) => {
   try {
-    const project = await Project.findById(req.params.id);
-
-    if (!project) {
-      return res.status(404).json({ message: "No project found with this id!" });
-    }
-
-    if (project.createdBy.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: "Unauthorized to delete." });
-    }
+    await verifyProjectOwnership(req.user._id, req.params.id)
 
     await Project.findByIdAndDelete(req.params.id);
     res.json({ message: "Project deleted." });
