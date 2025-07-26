@@ -12,12 +12,12 @@ const router = express.Router();
 // All routes here assume user is authenticated
 router.use(authMiddleware);
 
-// Nested route: /api/projects/:projectId/tasks
-router.post('/projects/:projectId/tasks', createTask);
-router.get('/projects/:projectId/tasks', getAllTasks);
+
+router.post('/:projectId', createTask);    //@Checked
+router.get('/:projectId', getAllTasks);     
 
 // Flat routes: /api/tasks/:taskId
-router.put('/tasks/:taskId', updateTask);
-router.delete('/tasks/:taskId', deleteTask);
+router.put('/:taskId', updateTask);     //@Checked
+router.delete('/:taskId', deleteTask);   //@Checked
 
 export default router;
